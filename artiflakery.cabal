@@ -60,6 +60,7 @@ library
     , lifted-async
     , monad-control
     , mtl
+    , optparse-applicative
     , process
     , text
     , time
@@ -104,6 +105,7 @@ executable artiflakery-exe
     , lifted-async
     , monad-control
     , mtl
+    , optparse-applicative
     , process
     , text
     , time

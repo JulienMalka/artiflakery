@@ -4,4 +4,4 @@ build:
 	stack build
 
 run: build
-	exec $(BIN_DIR)/artiflakery-exe
+	exec $(BIN_DIR)/artiflakery-exe --routes routes.txt --auth auth.txt

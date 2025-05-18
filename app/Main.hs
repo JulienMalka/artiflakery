@@ -45,6 +45,7 @@ import Server
 import System.Directory
 import System.FilePath (dropTrailingPathSeparator, takeDirectory)
 import Logger
+import Options.Applicative
 
 findMatchingRoute :: Text -> RouteMap -> Maybe (Route, (FlakeRef, [Group]))
 findMatchingRoute path routeMap =
@@ -121,10 +122,31 @@ appWithLogging routeMap authDB req respond =
 
 
 
+data AppOptions = AppOptions
+  { routesFile :: FilePath
+  , authFile   :: FilePath
+  }
+
+
+parseOptions :: Parser AppOptions
+parseOptions = AppOptions
+  <$> strOption
+      ( long "routes"
+      <> metavar "FILE"
+      <> help "Routes configuration file"
+      <> showDefault )
+  <*> strOption
+      ( long "auth"
+      <> metavar "FILE"
+      <> help "Authentication database file"
+      <> showDefault )
+
+
 main :: IO ()
 main = do
-  routeMap <- parseConfigFile "routes.txt"
-  authDB <- parseAuthFile "auth.txt"
+  options <- execParser opts
+  routeMap <- parseConfigFile (routesFile options)
+  authDB <- parseAuthFile (authFile options)
 
   usingLoggerT coloredLogAction $ createDataSkeleton routeMap
 
@@ -134,3 +156,9 @@ main = do
   let app' req respond = usingLoggerT coloredLogAction (loggedApp req respond)
 
   run 8080 app'
+  where
+    opts = info (parseOptions <**> helper)
+      ( fullDesc
+      <> progDesc "Run the web application with custom routes and auth files"
+      <> header "Web App - A configurable web application" )
+

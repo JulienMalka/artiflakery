@@ -51,6 +51,7 @@ dependencies:
 - unliftio-core
 - exceptions
 - bcrypt
+- optparse-applicative
 
 ghc-options:
 - -Wall

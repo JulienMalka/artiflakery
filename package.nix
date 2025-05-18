@@ -32,6 +32,7 @@
   wai-websockets,
   warp,
   websockets,
+  optparse-applicative
 }:
 mkDerivation {
   pname = "artiflakery";
@@ -104,6 +105,7 @@ mkDerivation {
     wai-websockets
     warp
     websockets
+    optparse-applicative
   ];
   doCheck = false;
   homepage = "https://github.com/JulienMalka/artiflakery#readme";
