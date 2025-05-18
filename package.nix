@@ -32,7 +32,8 @@
   wai-websockets,
   warp,
   websockets,
-  optparse-applicative
+  optparse-applicative,
+  file-embed
 }:
 mkDerivation {
   pname = "artiflakery";
@@ -72,6 +73,7 @@ mkDerivation {
     wai-websockets
     warp
     websockets
+    file-embed
   ];
   executableHaskellDepends = [
     aeson

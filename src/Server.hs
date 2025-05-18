@@ -1,6 +1,7 @@
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE RankNTypes #-}
+{-# LANGUAGE TemplateHaskell #-}
 
 module Server
   ( serve,
@@ -30,12 +31,19 @@ import Network.Wai.Application.Static (defaultFileServerSettings, ssAddTrailingS
 import System.Directory
 import System.FilePath ((</>))
 import Logger
+import Data.FileEmbed (embedFile)
+import qualified Data.ByteString as BS
+import qualified Data.Text.Encoding as TE
 
 type LoggedApplication env m =
   (WithLog env Message m, MonadIO m) =>
   Network.Wai.Request ->
   (Network.Wai.Response -> IO ResponseReceived) ->
   m ResponseReceived
+
+
+pdfViewerHtml :: BS.ByteString
+pdfViewerHtml = $(embedFile "pdf-viewer.html")
 
 websocketScriptFor :: Route -> Text
 websocketScriptFor route =
@@ -72,10 +80,12 @@ serveFlakePath route ref _allowedGroups _authDB _req respond = do
 
   if htmlExists || pdfExists
     then do
-      let finalFile = if pdfExists then "pdf-viewer.html" else htmlFile
-      content <- liftIO $ TIO.readFile finalFile
-      let script = websocketScriptFor route
-      let finalOutput = content `T.append` script
+      finalOutput <- if pdfExists
+        then pure $ TE.decodeUtf8 pdfViewerHtml `T.append` websocketScriptFor route
+        else do
+          content <- liftIO $ TIO.readFile htmlFile
+          pure $ content `T.append` websocketScriptFor route
+          
       liftIO $ respond $ responseLBS status200 [("Content-Type", "text/html")] (BL.fromStrict $ encodeUtf8 finalOutput)
     else liftIO $ notFound respond
 

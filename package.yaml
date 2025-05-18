@@ -52,6 +52,7 @@ dependencies:
 - exceptions
 - bcrypt
 - optparse-applicative
+- file-embed
 
 ghc-options:
 - -Wall
