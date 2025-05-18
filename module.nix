@@ -92,7 +92,11 @@ in
       description = "ArtifLakery Service";
       wantedBy = [ "multi-user.target" ];
       after = [ "network.target" ];
-      path = [ pkgs.nix ];
+      path = [
+        pkgs.nix
+        pkgs.git
+        pkgs.openssh
+      ];
 
       serviceConfig = {
         User = "artiflakery";
