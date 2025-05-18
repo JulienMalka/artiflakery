@@ -93,7 +93,7 @@ in
       wantedBy = [ "multi-user.target" ];
       after = [ "network.target" ];
       path = [
-        pkgs.nix
+        pkgs.lix
         pkgs.git
         pkgs.openssh
       ];
