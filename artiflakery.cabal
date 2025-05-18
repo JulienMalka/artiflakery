@@ -1,0 +1,118 @@
+cabal-version: 2.2
+
+-- This file has been generated from package.yaml by hpack version 0.38.0.
+--
+-- see: https://github.com/sol/hpack
+
+name:           artiflakery
+version:        0.1.0.0
+description:    Please see the README on GitHub at <https://github.com/githubuser/artiflakery#readme>
+homepage:       https://github.com/JulienMalka/artiflakery#readme
+bug-reports:    https://github.com/JulienMalka/artiflakery/issues
+author:         Julien Malka
+maintainer:     example@example.com
+copyright:      2025 Julien Malka
+license:        BSD-3-Clause
+build-type:     Simple
+extra-source-files:
+    README.md
+    CHANGELOG.md
+
+source-repository head
+  type: git
+  location: https://github.com/JulienMalka/artiflakery
+
+library
+  exposed-modules:
+      Auth
+      AutoReload
+      BuildFlake
+      Config
+      Logger
+      Server
+  other-modules:
+      Paths_artiflakery
+  autogen-modules:
+      Paths_artiflakery
+  hs-source-dirs:
+      src
+  default-extensions:
+      OverloadedStrings
+  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints
+  build-depends:
+      aeson
+    , ansi-terminal
+    , async
+    , base >=4.7 && <5
+    , base64-bytestring
+    , bcrypt
+    , bytestring
+    , co-log
+    , co-log-core
+    , containers
+    , cookie
+    , crypton
+    , directory
+    , exceptions
+    , filepath
+    , hslogger
+    , http-types
+    , lifted-async
+    , monad-control
+    , mtl
+    , process
+    , text
+    , time
+    , transformers
+    , unix
+    , unliftio-core
+    , wai >=3.2
+    , wai-app-static
+    , wai-websockets
+    , warp
+    , websockets
+  default-language: Haskell2010
+
+executable artiflakery-exe
+  main-is: Main.hs
+  other-modules:
+      Paths_artiflakery
+  autogen-modules:
+      Paths_artiflakery
+  hs-source-dirs:
+      app
+  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -threaded -rtsopts -with-rtsopts=-N
+  build-depends:
+      aeson
+    , ansi-terminal
+    , artiflakery
+    , async
+    , base >=4.7 && <5
+    , base64-bytestring
+    , bcrypt
+    , bytestring
+    , co-log
+    , co-log-core
+    , containers
+    , cookie
+    , crypton
+    , directory
+    , exceptions
+    , filepath
+    , hslogger
+    , http-types
+    , lifted-async
+    , monad-control
+    , mtl
+    , process
+    , text
+    , time
+    , transformers
+    , unix
+    , unliftio-core
+    , wai >=3.2
+    , wai-app-static
+    , wai-websockets
+    , warp
+    , websockets
+  default-language: Haskell2010

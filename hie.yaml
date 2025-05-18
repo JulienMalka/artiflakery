@@ -1,0 +1,10 @@
+cradle:
+  stack:
+    - path: "./src"
+      component: "artiflakery:lib"
+
+    - path: "./app/Main.hs"
+      component: "artiflakery:exe:artiflakery-exe"
+
+    - path: "./test"
+      component: "artiflakery:test:artiflakery-test"
