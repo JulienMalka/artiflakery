@@ -27,7 +27,7 @@ import Colog.Monad
 import Config (FlakeRef, Group, Route, RouteMap, UserDB, parseConfigFile)
 import Control.Concurrent.Async
 import Control.Exception (finally)
-import Control.Monad (forever, void)
+import Control.Monad (forever, void, when)
 import Control.Monad.IO.Class
 import Data.List (maximumBy)
 import qualified Data.Map.Strict as Map
@@ -109,7 +109,8 @@ webSocketHandler pendingConn = do
 createDataSkeleton :: (WithLog env Message m, MonadIO m) => RouteMap -> m ()
 createDataSkeleton routeMap = do
   logInfo "Creating data skeleton..."
-  liftIO $ removeDirectoryRecursive "data"
+  dataExists <- liftIO $ doesDirectoryExist "data"
+  when dataExists $ liftIO $ removeDirectoryRecursive "data"
   let createR r = createDirectoryIfMissing True ("data/" ++ takeDirectory (dropTrailingPathSeparator (T.unpack r)))
   liftIO $ mapM_ createR (Map.keys routeMap)
 
