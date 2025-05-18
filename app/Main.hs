@@ -14,11 +14,11 @@ module Main (main) where
 
 import Auth
   ( checkBasicAuth,
+    getSecretKey,
     isAuthorized,
     makeSecureCookieHeader,
     parseAuthFile,
     signCookieValue,
-    getSecretKey
   )
 import AutoReload (addClient, connId, removeClient)
 import BuildFlake (buildFlakeWithLogging)
@@ -35,17 +35,18 @@ import Data.Ord (comparing)
 import Data.Text (Text)
 import qualified Data.Text as T
 import Data.Text.Encoding (decodeUtf8, encodeUtf8)
+import Logger
 import Network.HTTP.Types
 import Network.Wai
 import Network.Wai.Application.Static (defaultFileServerSettings, ssAddTrailingSlash, staticApp)
 import Network.Wai.Handler.Warp (run)
 import Network.Wai.Handler.WebSockets (websocketsApp)
 import Network.WebSockets hiding (Message)
+import Options.Applicative
 import Server
 import System.Directory
 import System.FilePath (dropTrailingPathSeparator, takeDirectory)
-import Logger
-import Options.Applicative
+import System.IO (hSetBuffering, BufferMode(LineBuffering), stdout)
 
 findMatchingRoute :: Text -> RouteMap -> Maybe (Route, (FlakeRef, [Group]))
 findMatchingRoute path routeMap =
@@ -56,7 +57,7 @@ findMatchingRoute path routeMap =
         [] -> Nothing
         _ -> Just $ maximumBy (comparing (T.length . fst)) matches
 
-app :: 
+app ::
   RouteMap ->
   UserDB ->
   LoggedApplication env m
@@ -102,7 +103,7 @@ webSocketHandler pendingConn = do
     liftIO $
       finally
         (forever $ void (receiveData conn :: IO Text))
-        (pure ()) 
+        (pure ())
   logInfo $ "Closing connection: " <> T.pack (show (connId client))
   liftIO $ removeClient (connId client)
 
@@ -121,30 +122,30 @@ appWithLogging routeMap authDB req respond =
       Just wsResp -> liftIO $ respond wsResp
       Nothing -> app routeMap authDB req respond
 
-
-
 data AppOptions = AppOptions
-  { routesFile :: FilePath
-  , authFile   :: FilePath
+  { routesFile :: FilePath,
+    authFile :: FilePath
   }
 
-
 parseOptions :: Parser AppOptions
-parseOptions = AppOptions
-  <$> strOption
+parseOptions =
+  AppOptions
+    <$> strOption
       ( long "routes"
-      <> metavar "FILE"
-      <> help "Routes configuration file"
-      <> showDefault )
-  <*> strOption
+          <> metavar "FILE"
+          <> help "Routes configuration file"
+          <> showDefault
+      )
+    <*> strOption
       ( long "auth"
-      <> metavar "FILE"
-      <> help "Authentication database file"
-      <> showDefault )
-
+          <> metavar "FILE"
+          <> help "Authentication database file"
+          <> showDefault
+      )
 
 main :: IO ()
 main = do
+  hSetBuffering stdout LineBuffering
   options <- execParser opts
   routeMap <- parseConfigFile (routesFile options)
   authDB <- parseAuthFile (authFile options)
@@ -153,13 +154,15 @@ main = do
 
   _ <- async $ usingLoggerT coloredLogAction $ mapM_ (uncurry buildFlakeWithLogging) (Map.toList $ Map.map fst routeMap)
 
-  let loggedApp = appWithLogging routeMap authDB 
+  let loggedApp = appWithLogging routeMap authDB
   let app' req respond = usingLoggerT coloredLogAction (loggedApp req respond)
 
   run 8090 app'
   where
-    opts = info (parseOptions <**> helper)
-      ( fullDesc
-      <> progDesc "Run the web application with custom routes and auth files"
-      <> header "Web App - A configurable web application" )
-
+    opts =
+      info
+        (parseOptions <**> helper)
+        ( fullDesc
+            <> progDesc "Run the web application with custom routes and auth files"
+            <> header "Web App - A configurable web application"
+        )
