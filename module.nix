@@ -1,19 +1,26 @@
-{config, lib, pkgs, ...}:
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 
 with lib;
 
 let
   cfg = config.services.artiflakery;
-  
+
   routesFile = pkgs.writeText "artiflakery-routes.txt" (
     concatStringsSep "\n" (
-      mapAttrsToList (routePath: routeOpts: 
-        "${routePath} ${routeOpts.flakeref} ${concatStringsSep " " routeOpts.access}"
+      mapAttrsToList (
+        routePath: routeOpts: "${routePath} ${routeOpts.flakeref} ${concatStringsSep " " routeOpts.access}"
       ) cfg.routes
-    ) + "\n"
+    )
+    + "\n"
   );
 
-in {
+in
+{
   options.services.artiflakery = {
     enable = mkEnableOption "Artiflakery service";
 
@@ -77,24 +84,23 @@ in {
       };
     };
 
-    users.groups.artiflakery = {};
+    users.groups.artiflakery = { };
 
-      nix.settings.allowed-users = [ "artiflakery" ];
-    
+    nix.settings.allowed-users = [ "artiflakery" ];
+
     systemd.services.artiflakery = {
       description = "ArtifLakery Service";
-      wantedBy = ["multi-user.target"];
-      after = ["network.target"];
+      wantedBy = [ "multi-user.target" ];
+      after = [ "network.target" ];
       path = [ pkgs.nix ];
-      
+
       serviceConfig = {
         User = "artiflakery";
         Group = "artiflakery";
         ExecStart = "${cfg.package}/bin/artiflakery-exe --auth ${cfg.authFile} --routes ${routesFile}";
         Restart = "on-failure";
         RestartSec = "5s";
-        
-        # Security hardening
+
         ProtectSystem = "strict";
         ProtectHome = true;
         PrivateTmp = true;
@@ -103,8 +109,8 @@ in {
         ProtectKernelModules = true;
         ProtectControlGroups = true;
         NoNewPrivileges = true;
-        
-        # Allow read access to the auth file
+        WorkingDirectory = "/var/lib/artiflakery";
+
         ReadOnlyPaths = "${cfg.authFile}";
       };
     };
