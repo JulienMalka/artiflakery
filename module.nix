@@ -98,10 +98,11 @@ in
         pkgs.openssh
       ];
 
+      script = "${cfg.package}/bin/artiflakery-exe --auth ${cfg.authFile} --routes ${routesFile}";
+
       serviceConfig = {
         User = "artiflakery";
         Group = "artiflakery";
-        ExecStart = "${cfg.package}/bin/artiflakery-exe --auth ${cfg.authFile} --routes ${routesFile}";
         Restart = "on-failure";
         RestartSec = "5s";
 
