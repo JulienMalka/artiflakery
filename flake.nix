@@ -18,11 +18,19 @@
         pkgs = nixpkgs.legacyPackages.${system};
         artiflakery = pkgs.haskellPackages.callPackage ./package.nix { };
       in
-      rec {
+      {
         defaultPackage = artiflakery;
         checks = {
           inherit artiflakery;
         };
+        devShells.default = pkgs.mkShell {
+          buildInputs = with pkgs; [
+            stack
+            haskell.compiler.ghc96
+            haskell-language-server
+          ];
+        };
+
       }
     ));
 }
