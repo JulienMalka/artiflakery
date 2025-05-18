@@ -101,8 +101,6 @@ in
         Restart = "on-failure";
         RestartSec = "5s";
 
-        ProtectSystem = "strict";
-        ProtectHome = true;
         PrivateTmp = true;
         ProtectHostname = true;
         ProtectKernelTunables = true;
@@ -111,7 +109,6 @@ in
         NoNewPrivileges = true;
         WorkingDirectory = "/var/lib/artiflakery";
 
-        ReadOnlyPaths = "${cfg.authFile}";
       };
     };
   };
