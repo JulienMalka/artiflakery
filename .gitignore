@@ -4,3 +4,4 @@ data
 auth.txt
 routes.txt
 result
+secret-key

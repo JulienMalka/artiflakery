@@ -40,13 +40,19 @@ parseConfigFile path = do
         (route : ref : groups) -> Just (route, ref, groups)
         _ -> Nothing
 
+
 parseAuthFile :: FilePath -> IO UserDB
 parseAuthFile path = do
   content <- readFile path
-  let entries = map (splitOnComma . T.strip . T.pack) (lines content)
-      insertEntry m (g,u,h) = Map.insertWith (++) g [(u,h)] m
-  return $ foldl insertEntry Map.empty (mapMaybe toTriple entries)
+  let entries = map (parseLine . T.strip . T.pack) (lines content)
+      insertEntry m (g, u, h) = Map.insertWith (++) g [(u, h)] m
+  return $ foldl insertEntry Map.empty (mapMaybe id entries)
   where
-    splitOnComma = T.splitOn ","
-    toTriple [g,u,h] = Just (g,u,h)
-    toTriple _ = Nothing
+    parseLine :: Text -> Maybe (Group, UserId, PasswordHash)
+    parseLine line =
+      case T.splitOn "," line of
+        [group, userHash] ->
+          case T.splitOn ":" userHash of
+            [user, hash] -> Just (group, user, hash)
+            _            -> Nothing
+        _ -> Nothing
