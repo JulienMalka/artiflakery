@@ -156,7 +156,7 @@ main = do
   let loggedApp = appWithLogging routeMap authDB 
   let app' req respond = usingLoggerT coloredLogAction (loggedApp req respond)
 
-  run 8080 app'
+  run 8090 app'
   where
     opts = info (parseOptions <**> helper)
       ( fullDesc
