@@ -26,7 +26,6 @@ import qualified Data.ByteString.Base64 as B64
 import Data.ByteString.Builder (toLazyByteString)
 import qualified Data.ByteString.Char8 as BS8
 import qualified Data.ByteString.Lazy as BL
-import Data.List (find)
 import qualified Data.Map.Strict as Map
 import Data.Text (Text)
 import qualified Data.Text as T
@@ -55,8 +54,9 @@ getSecretKey = do
 isAuthorized :: (WithLog env Message m, MonadIO m) => [Group] -> Request -> m (Bool, [Group])
 isAuthorized allowed req = do
   userGroups <- extractGroupsFromCookie req
-  let status = any (`elem` userGroups) allowed
-  return (status, userGroups)
+  let userGroups' = userGroups ++ [ "public" ]
+  let status = any (`elem` userGroups') allowed
+  return (status, userGroups')
 
 -- | Extract user groups from signed cookie
 extractGroupsFromCookie :: (WithLog env Message m, MonadIO m) => Request -> m [Group]
