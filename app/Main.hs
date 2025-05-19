@@ -46,7 +46,7 @@ import Options.Applicative
 import Server
 import System.Directory
 import System.FilePath (dropTrailingPathSeparator, takeDirectory)
-import System.IO (hSetBuffering, BufferMode(LineBuffering), stdout)
+import System.IO (BufferMode (LineBuffering), hSetBuffering, stdout)
 
 findMatchingRoute :: Text -> RouteMap -> Maybe (Route, (FlakeRef, [Group]))
 findMatchingRoute path routeMap =
@@ -65,9 +65,7 @@ app routeMap authDB req respond = do
   secret <- liftIO $ getSecretKey
   let rawPath = decodeUtf8 $ rawPathInfo req
       normalizedPath = T.dropWhile (== '/') rawPath
-
   logDebug $ "Incoming request path: " <> normalizedPath
-
   case findMatchingRoute normalizedPath routeMap of
     Nothing -> do
       logWarning $ "No matching auth route. Serving static: " <> normalizedPath
@@ -85,7 +83,8 @@ app routeMap authDB req respond = do
                 Just group -> do
                   let groupStr = signCookieValue secret (encodeUtf8 (T.intercalate "," (group : groups)))
                   cookieHeader <- liftIO $ makeSecureCookieHeader (decodeUtf8 groupStr)
-                  serveWithCookie normalizedPath cookieHeader routeMap authDB req respond
+                  serve matchedRoute routeMap authDB req $ \resp ->
+                    respond $ mapResponseHeaders ((cookieHeader :) . filter (\(h, _) -> h /= "Set-Cookie")) resp
                 Nothing ->
                   liftIO $
                     respond $
