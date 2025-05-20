@@ -8,25 +8,16 @@ copyright:           "2025 Julien Malka"
 
 extra-source-files:
 - README.md
-- CHANGELOG.md
 
-# Metadata used when publishing your package
-# synopsis:            Short description of your package
-# category:            Web
-
-# To avoid duplicated efforts in documentation and dealing with the
-# complications of embedding Haddock markup inside cabal files, it is
-# common to point users to the README.md file.
-description:         Please see the README on GitHub at <https://github.com/JulienMalka/artiflakery#readme>
+description:          A webserver for on the fly delivery of Nix flake artifacts 
 
 dependencies:
 - base >= 4.7 && < 5
 - wai >= 3.2
 - warp
 - http-types
-- aeson
-- containers
 - async
+- containers
 - process
 - time
 - text
@@ -34,21 +25,15 @@ dependencies:
 - wai-app-static
 - wai-websockets
 - websockets
-- unix
 - directory
+- unix
 - filepath
-- hslogger
 - ansi-terminal
 - crypton
 - base64-bytestring
 - cookie
 - co-log
 - co-log-core
-- mtl
-- lifted-async
-- monad-control
-- transformers
-- unliftio-core
 - exceptions
 - bcrypt
 - optparse-applicative

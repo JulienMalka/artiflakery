@@ -6,7 +6,7 @@ cabal-version: 2.2
 
 name:           artiflakery
 version:        1.0.0
-description:    Please see the README on GitHub at <https://github.com/JulienMalka/artiflakery#readme>
+description:    A webserver for on the fly delivery of Nix flake artifacts
 homepage:       https://github.com/JulienMalka/artiflakery#readme
 bug-reports:    https://github.com/JulienMalka/artiflakery/issues
 author:         Julien Malka
@@ -16,7 +16,6 @@ license:        EUPL-1.2
 build-type:     Simple
 extra-source-files:
     README.md
-    CHANGELOG.md
 
 source-repository head
   type: git
@@ -40,8 +39,7 @@ library
       OverloadedStrings
   ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints
   build-depends:
-      aeson
-    , ansi-terminal
+      ansi-terminal
     , async
     , base >=4.7 && <5
     , base64-bytestring
@@ -56,18 +54,12 @@ library
     , exceptions
     , file-embed
     , filepath
-    , hslogger
     , http-types
-    , lifted-async
-    , monad-control
-    , mtl
     , optparse-applicative
     , process
     , text
     , time
-    , transformers
     , unix
-    , unliftio-core
     , wai >=3.2
     , wai-app-static
     , wai-websockets
@@ -85,8 +77,7 @@ executable artiflakery-exe
       app
   ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -threaded -rtsopts -with-rtsopts=-N
   build-depends:
-      aeson
-    , ansi-terminal
+      ansi-terminal
     , artiflakery
     , async
     , base >=4.7 && <5
@@ -102,18 +93,12 @@ executable artiflakery-exe
     , exceptions
     , file-embed
     , filepath
-    , hslogger
     , http-types
-    , lifted-async
-    , monad-control
-    , mtl
     , optparse-applicative
     , process
     , text
     , time
-    , transformers
     , unix
-    , unliftio-core
     , wai >=3.2
     , wai-app-static
     , wai-websockets

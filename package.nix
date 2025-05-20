@@ -1,6 +1,5 @@
 {
   mkDerivation,
-  aeson,
   ansi-terminal,
   async,
   base,
@@ -14,26 +13,19 @@
   crypton,
   directory,
   exceptions,
+  file-embed,
   filepath,
-  hslogger,
   http-types,
-  lib,
-  lifted-async,
-  monad-control,
-  mtl,
+  optparse-applicative,
   process,
   text,
   time,
-  transformers,
   unix,
-  unliftio-core,
   wai,
   wai-app-static,
   wai-websockets,
   warp,
   websockets,
-  optparse-applicative,
-  file-embed,
 }:
 mkDerivation {
   pname = "artiflakery";
@@ -42,7 +34,6 @@ mkDerivation {
   isLibrary = true;
   isExecutable = true;
   libraryHaskellDepends = [
-    aeson
     ansi-terminal
     async
     base
@@ -56,27 +47,21 @@ mkDerivation {
     crypton
     directory
     exceptions
+    file-embed
     filepath
-    hslogger
     http-types
-    lifted-async
-    monad-control
-    mtl
+    optparse-applicative
     process
     text
     time
-    transformers
     unix
-    unliftio-core
     wai
     wai-app-static
     wai-websockets
     warp
     websockets
-    file-embed
   ];
   executableHaskellDepends = [
-    aeson
     ansi-terminal
     async
     base
@@ -90,27 +75,22 @@ mkDerivation {
     crypton
     directory
     exceptions
+    file-embed
     filepath
-    hslogger
     http-types
-    lifted-async
-    monad-control
-    mtl
+    optparse-applicative
     process
     text
     time
-    transformers
     unix
-    unliftio-core
     wai
     wai-app-static
     wai-websockets
     warp
     websockets
-    optparse-applicative
   ];
   doCheck = false;
   homepage = "https://github.com/JulienMalka/artiflakery#readme";
-  license = lib.licenses.bsd3;
+  license = "EUPL-1.2";
   mainProgram = "artiflakery-exe";
 }
