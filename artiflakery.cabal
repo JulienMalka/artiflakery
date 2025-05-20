@@ -5,14 +5,14 @@ cabal-version: 2.2
 -- see: https://github.com/sol/hpack
 
 name:           artiflakery
-version:        0.1.0.0
-description:    Please see the README on GitHub at <https://github.com/githubuser/artiflakery#readme>
+version:        1.0.0
+description:    Please see the README on GitHub at <https://github.com/JulienMalka/artiflakery#readme>
 homepage:       https://github.com/JulienMalka/artiflakery#readme
 bug-reports:    https://github.com/JulienMalka/artiflakery/issues
 author:         Julien Malka
-maintainer:     example@example.com
+maintainer:     julien.malka@me.com
 copyright:      2025 Julien Malka
-license:        BSD-3-Clause
+license:        EUPL-1.2
 build-type:     Simple
 extra-source-files:
     README.md

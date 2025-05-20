@@ -1,9 +1,9 @@
 name:                artiflakery
-version:             0.1.0.0
+version:             1.0.0
 github:              "JulienMalka/artiflakery"
-license:             BSD-3-Clause
+license:             EUPL-1.2
 author:              "Julien Malka"
-maintainer:          "example@example.com"
+maintainer:          "julien.malka@me.com"
 copyright:           "2025 Julien Malka"
 
 extra-source-files:
@@ -17,7 +17,7 @@ extra-source-files:
 # To avoid duplicated efforts in documentation and dealing with the
 # complications of embedding Haddock markup inside cabal files, it is
 # common to point users to the README.md file.
-description:         Please see the README on GitHub at <https://github.com/githubuser/artiflakery#readme>
+description:         Please see the README on GitHub at <https://github.com/JulienMalka/artiflakery#readme>
 
 dependencies:
 - base >= 4.7 && < 5

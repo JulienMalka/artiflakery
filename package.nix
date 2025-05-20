@@ -33,11 +33,11 @@
   warp,
   websockets,
   optparse-applicative,
-  file-embed
+  file-embed,
 }:
 mkDerivation {
   pname = "artiflakery";
-  version = "0.1.0.0";
+  version = "1.0.0";
   src = ./.;
   isLibrary = true;
   isExecutable = true;
