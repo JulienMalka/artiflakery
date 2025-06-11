@@ -47,7 +47,8 @@ websocketScriptFor :: Route -> Text
 websocketScriptFor route =
   T.unlines
     [ "<script>",
-      "  const socket = new WebSocket('ws://' + window.location.host + '/ws');",
+      "  const protocol = window.location.protocol === 'https:' ? 'wss://' : 'ws://';",
+      "  const socket = new WebSocket(protocol + window.location.host + '/ws');",
       "  socket.addEventListener('message', function(event) {",
       "    if (event.data === 'Build Complete!:" <> route <> "') {",
       "      window.location.reload();",
