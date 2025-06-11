@@ -26,6 +26,7 @@
   wai-websockets,
   warp,
   websockets,
+  unliftio,
 }:
 mkDerivation {
   pname = "artiflakery";
@@ -60,6 +61,7 @@ mkDerivation {
     wai-websockets
     warp
     websockets
+    unliftio
   ];
   executableHaskellDepends = [
     ansi-terminal
@@ -88,6 +90,7 @@ mkDerivation {
     wai-websockets
     warp
     websockets
+    unliftio
   ];
   doCheck = false;
   homepage = "https://github.com/JulienMalka/artiflakery#readme";
