@@ -16,7 +16,6 @@ import BuildFlake (buildFlakeWithLogging)
 import Colog.Message
 import Colog.Monad
 import Config
-import Control.Concurrent.Async
 import Control.Monad.IO.Class
 import qualified Data.ByteString as BS
 import qualified Data.ByteString.Lazy as BL
@@ -33,9 +32,10 @@ import Network.Wai
 import Network.Wai.Application.Static (defaultFileServerSettings, ssAddTrailingSlash, staticApp)
 import System.Directory
 import System.FilePath ((</>))
+import UnliftIO (async, MonadUnliftIO)
 
 type LoggedApplication env m =
-  (WithLog env Message m, MonadIO m) =>
+  (WithLog env Message m, MonadIO m, MonadUnliftIO m) =>
   Network.Wai.Request ->
   (Network.Wai.Response -> IO ResponseReceived) ->
   m ResponseReceived
@@ -69,11 +69,7 @@ serveFlakePath route ref _allowedGroups _authDB _req respond = do
       htmlFile = routeDir </> T.unpack "index.html"
       pdfFile = routeDir </> T.unpack "main.pdf"
 
-  _ <-
-    liftIO $
-      async $
-        usingLoggerT coloredLogAction $
-          buildFlakeWithLogging route ref
+  _ <- async $ buildFlakeWithLogging route ref
 
   pdfExists <- liftIO $ doesFileExist pdfFile
   htmlExists <- liftIO $ doesFileExist htmlFile

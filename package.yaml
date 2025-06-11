@@ -38,6 +38,7 @@ dependencies:
 - bcrypt
 - optparse-applicative
 - file-embed
+- unliftio
 
 ghc-options:
 - -Wall

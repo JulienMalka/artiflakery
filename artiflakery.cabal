@@ -60,6 +60,7 @@ library
     , text
     , time
     , unix
+    , unliftio
     , wai >=3.2
     , wai-app-static
     , wai-websockets
@@ -99,6 +100,7 @@ executable artiflakery-exe
     , text
     , time
     , unix
+    , unliftio
     , wai >=3.2
     , wai-app-static
     , wai-websockets
