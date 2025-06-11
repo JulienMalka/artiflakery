@@ -90,12 +90,12 @@ serve :: Text -> RouteMap -> UserDB -> LoggedApplication env m
 serve normalizedPath routeMap authDB req respond = do
   logInfo $ "Serving " <> normalizedPath
   if Map.member normalizedPath routeMap
-    then uncurry (serveFlakePath normalizedPath) (routeMap Map.! (normalizedPath <> "/")) authDB req respond
+    then uncurry (serveFlakePath normalizedPath) (routeMap Map.! normalizedPath) authDB req respond
     else liftIO $ staticApp (defaultFileServerSettings "data") {ssAddTrailingSlash = True} req respond
 
 serveFlakeWithCookie :: Text -> Header -> RouteMap -> UserDB -> LoggedApplication env m
 serveFlakeWithCookie normalizedPath cookieHeader routeMap authDB req respond = do
-  let (ref, allowedGroups) = routeMap Map.! (normalizedPath <> "/")
+  let (ref, allowedGroups) = routeMap Map.! normalizedPath
   serveFlakePath normalizedPath ref allowedGroups authDB req $ \resp ->
     respond $ mapResponseHeaders ((cookieHeader :) . filter (\(h, _) -> h /= "Set-Cookie")) resp
 
