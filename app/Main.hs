@@ -38,7 +38,6 @@ import Data.Text.Encoding (decodeUtf8, encodeUtf8)
 import Logger
 import Network.HTTP.Types
 import Network.Wai
-import Network.Wai.Application.Static (defaultFileServerSettings, ssAddTrailingSlash, staticApp)
 import Network.Wai.Handler.Warp (run)
 import Network.Wai.Handler.WebSockets (websocketsApp)
 import Network.WebSockets hiding (Message)
@@ -47,6 +46,7 @@ import Server
 import System.Directory
 import System.FilePath (dropTrailingPathSeparator, takeDirectory)
 import System.IO (BufferMode (LineBuffering), hSetBuffering, stdout)
+import AuthenticatedListing
 
 findMatchingRoute :: Text -> RouteMap -> Maybe (Route, (FlakeRef, [Group]))
 findMatchingRoute path routeMap =
@@ -69,7 +69,7 @@ app routeMap authDB req respond = do
   case findMatchingRoute normalizedPath routeMap of
     Nothing -> do
       logWarning $ "No matching auth route. Serving static: " <> normalizedPath
-      liftIO $ staticApp (defaultFileServerSettings "data") {ssAddTrailingSlash = True} req respond
+      authenticatedListing routeMap authDB rawPath req respond
     Just (matchedRoute, (_, allowedGroups)) -> do
       if normalizedPath /= matchedRoute && (normalizedPath <> "/") == matchedRoute
         then liftIO $ respond $ responseBuilder status301 [("Location", encodeUtf8 ("/" <> matchedRoute))] mempty

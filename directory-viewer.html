@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Artiflakery - {{PATH}}</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: #f8f9fa;
+            min-height: 100vh;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 2rem;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .folder-card {
+            background: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            padding: 2rem;
+            border: 1px solid #e9ecef;
+            transition: box-shadow 0.3s ease;
+        }
+
+        .folder-card:hover {
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+        }
+
+        h1 {
+            font-size: 1.75rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            color: #2c3e50;
+        }
+
+        .path {
+            font-family: 'Courier New', monospace;
+            font-weight: 400;
+            color: #6c757d;
+            background: #f8f9fa;
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+        }
+
+        .folder-list {
+            list-style: none;
+            display: grid;
+            gap: 1rem;
+        }
+
+        .folder-item {
+            background: #fff;
+            border-radius: 6px;
+            transition: all 0.2s ease;
+            border: 1px solid #e9ecef;
+            overflow: hidden;
+        }
+
+        .folder-item:hover {
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+            border-color: #007bff;
+        }
+
+        .folder-item::before {
+            display: none;
+        }
+
+        .folder-link {
+            display: flex;
+            align-items: center;
+            padding: 1.5rem;
+            text-decoration: none;
+            color: #333;
+            font-weight: 500;
+            font-size: 1.1rem;
+            transition: color 0.3s ease;
+        }
+
+        .folder-link:hover {
+            color: #007bff;
+        }
+
+        .folder-icon {
+            width: 20px;
+            height: 20px;
+            margin-right: 0.75rem;
+            opacity: 0.6;
+            transition: opacity 0.2s ease;
+        }
+
+        .folder-item:hover .folder-icon {
+            opacity: 0.8;
+        }
+
+        .folder-name {
+            flex: 1;
+        }
+
+        .folder-arrow {
+            width: 14px;
+            height: 14px;
+            opacity: 0.4;
+            transition: opacity 0.2s ease;
+        }
+
+        .folder-item:hover .folder-arrow {
+            opacity: 0.7;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 3rem 0;
+            color: #666;
+        }
+
+        .empty-state svg {
+            width: 64px;
+            height: 64px;
+            margin-bottom: 1rem;
+            opacity: 0.5;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+
+            .folder-card {
+                padding: 1.5rem;
+                border-radius: 16px;
+            }
+
+            h1 {
+                font-size: 1.5rem;
+            }
+
+            .path {
+                font-size: 0.9rem;
+                padding: 0.15rem 0.4rem;
+            }
+
+            .folder-link {
+                padding: 1rem;
+                font-size: 1rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                padding: 0.5rem;
+            }
+
+            .folder-card {
+                padding: 1rem;
+                border-radius: 12px;
+            }
+
+            h1 {
+                font-size: 1.3rem;
+            }
+
+            .folder-link {
+                padding: 0.8rem;
+            }
+        }
+
+        /* Smooth animations */
+        .folder-item {
+            opacity: 1;
+            animation: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="folder-card">
+            <h1>Artiflakery {{PATH}}</h1>
+            
+            <ul class="folder-list">
+	      {{FOLDERS}} 
+            </ul>
+        </div>
+    </div>
+</body>
+</html>
