@@ -24,6 +24,7 @@ source-repository head
 library
   exposed-modules:
       Auth
+      AuthenticatedListing
       AutoReload
       BuildFlake
       Config

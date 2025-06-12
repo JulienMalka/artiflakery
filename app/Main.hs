@@ -38,7 +38,6 @@ import Data.Text.Encoding (decodeUtf8, encodeUtf8)
 import Logger
 import Network.HTTP.Types
 import Network.Wai
-import Network.Wai.Application.Static (defaultFileServerSettings, ssAddTrailingSlash, staticApp)
 import Network.Wai.Handler.Warp (run)
 import Network.Wai.Handler.WebSockets (websocketsApp)
 import Network.WebSockets hiding (Message)
@@ -47,6 +46,8 @@ import Server
 import System.Directory
 import System.FilePath (dropTrailingPathSeparator, takeDirectory)
 import System.IO (BufferMode (LineBuffering), hSetBuffering, stdout)
+import AuthenticatedListing
+import qualified Data.Set as Set
 
 findMatchingRoute :: Text -> RouteMap -> Maybe (Route, (FlakeRef, [Group]))
 findMatchingRoute path routeMap =
@@ -65,11 +66,33 @@ app routeMap authDB req respond = do
   secret <- liftIO $ getSecretKey
   let rawPath = decodeUtf8 $ rawPathInfo req
       normalizedPath = T.dropWhile (== '/') rawPath
+      allGroups = Set.toList $ Set.fromList $ concatMap snd (Map.elems routeMap)
   logDebug $ "Incoming request path: " <> normalizedPath
-  case findMatchingRoute normalizedPath routeMap of
+  if normalizedPath == "login"
+    then do
+      logDebug "Login endpoint requested, starting authentication flow"
+      result <- liftIO $ checkBasicAuth authDB allGroups req
+      case result of
+        Just group -> do
+          let groupStr = signCookieValue secret (encodeUtf8 (T.intercalate "," [group]))
+          cookieHeader <- liftIO $ makeSecureCookieHeader (decodeUtf8 groupStr)
+          -- Redirect to root or a success page after successful login
+          liftIO $ respond $ responseBuilder 
+            status302 
+            [("Location", "/"), cookieHeader] 
+            mempty
+        Nothing -> do
+          liftIO $
+            respond $
+              responseLBS
+                status401
+                [("WWW-Authenticate", "Basic realm=\"Login\"")]
+                "Please provide your credentials to login"
+      
+  else case findMatchingRoute normalizedPath routeMap of
     Nothing -> do
       logWarning $ "No matching auth route. Serving static: " <> normalizedPath
-      liftIO $ staticApp (defaultFileServerSettings "data") {ssAddTrailingSlash = True} req respond
+      authenticatedListing routeMap authDB rawPath req respond
     Just (matchedRoute, (_, allowedGroups)) -> do
       if normalizedPath /= matchedRoute && (normalizedPath <> "/") == matchedRoute
         then liftIO $ respond $ responseBuilder status301 [("Location", encodeUtf8 ("/" <> matchedRoute))] mempty
