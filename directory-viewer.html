@@ -45,11 +45,55 @@
         h1 {
             font-size: 1.75rem;
             font-weight: 600;
-            margin-bottom: 1.5rem;
+            margin-bottom: 0;
             color: #2c3e50;
         }
 
+        .header-section {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 1.5rem;
+        }
+
+        .login-icon {
+            width: 16px;
+            height: 16px;
+        }
+
         .path {
+            font-family: 'Courier New', monospace;
+            font-weight: 400;
+            color: #6c757d;
+            background: #f8f9fa;
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+        }
+
+        .login-btn {
+            padding: 0.5rem 1rem;
+            background: #007bff;
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: background-color 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            flex-shrink: 0;
+        }
+
+        .login-btn:hover {
+            background: #0056b3;
+            color: white;
+        }
+
+        .login-icon {
+            width: 16px;
+            height: 16px;
+        }
             font-family: 'Courier New', monospace;
             font-weight: 400;
             color: #6c757d;
@@ -70,6 +114,11 @@
             transition: all 0.2s ease;
             border: 1px solid #e9ecef;
             overflow: hidden;
+            margin-bottom: 1rem;
+        }
+
+        .folder-item:last-child {
+            margin-bottom: 0;
         }
 
         .folder-item:hover {
@@ -146,6 +195,18 @@
                 border-radius: 16px;
             }
 
+            .header-section {
+                flex-direction: column;
+                gap: 1rem;
+                align-items: flex-start;
+            }
+
+            .login-btn {
+                padding: 0.4rem 0.8rem;
+                font-size: 0.8rem;
+                align-self: flex-end;
+            }
+
             h1 {
                 font-size: 1.5rem;
             }
@@ -189,8 +250,18 @@
 </head>
 <body>
     <div class="container">
-        <div class="folder-card">
-            <h1>Artiflakery {{PATH}}</h1>
+      <div class="folder-card">
+	<div class="header-section">
+	  <h1>Artiflakery {{PATH}}</h1>
+                <a href="/login" class="login-btn">
+                    <svg class="login-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/>
+                        <polyline points="10,17 15,12 10,7"/>
+                        <line x1="15" y1="12" x2="3" y2="12"/>
+                    </svg>
+                    Login
+                </a>
+            </div>
             
             <ul class="folder-list">
 	      {{FOLDERS}} 
