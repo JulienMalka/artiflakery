@@ -20,6 +20,7 @@ import Auth
     parseAuthFile,
     signCookieValue,
   )
+import AuthenticatedListing
 import AutoReload (addClient, connId, removeClient)
 import BuildFlake (buildFlakeWithLogging)
 import Colog.Message
@@ -32,6 +33,7 @@ import Control.Monad.IO.Class
 import Data.List (maximumBy)
 import qualified Data.Map.Strict as Map
 import Data.Ord (comparing)
+import qualified Data.Set as Set
 import Data.Text (Text)
 import qualified Data.Text as T
 import Data.Text.Encoding (decodeUtf8, encodeUtf8)
@@ -46,8 +48,6 @@ import Server
 import System.Directory
 import System.FilePath (dropTrailingPathSeparator, takeDirectory)
 import System.IO (BufferMode (LineBuffering), hSetBuffering, stdout)
-import AuthenticatedListing
-import qualified Data.Set as Set
 
 findMatchingRoute :: Text -> RouteMap -> Maybe (Route, (FlakeRef, [Group]))
 findMatchingRoute path routeMap =
@@ -77,10 +77,12 @@ app routeMap authDB req respond = do
           let groupStr = signCookieValue secret (encodeUtf8 (T.intercalate "," [group]))
           cookieHeader <- liftIO $ makeSecureCookieHeader (decodeUtf8 groupStr)
           -- Redirect to root or a success page after successful login
-          liftIO $ respond $ responseBuilder 
-            status302 
-            [("Location", "/"), cookieHeader] 
-            mempty
+          liftIO $
+            respond $
+              responseBuilder
+                status302
+                [("Location", "/"), cookieHeader]
+                mempty
         Nothing -> do
           liftIO $
             respond $
@@ -88,33 +90,32 @@ app routeMap authDB req respond = do
                 status401
                 [("WWW-Authenticate", "Basic realm=\"Login\"")]
                 "Please provide your credentials to login"
-      
-  else case findMatchingRoute normalizedPath routeMap of
-    Nothing -> do
-      logWarning $ "No matching auth route. Serving static: " <> normalizedPath
-      authenticatedListing routeMap authDB rawPath req respond
-    Just (matchedRoute, (_, allowedGroups)) -> do
-      if normalizedPath /= matchedRoute && (normalizedPath <> "/") == matchedRoute
-        then liftIO $ respond $ responseBuilder status301 [("Location", encodeUtf8 ("/" <> matchedRoute))] mempty
-        else do
-          (authorized, groups) <- isAuthorized allowedGroups req
-          if authorized
-            then serve normalizedPath routeMap authDB req respond
-            else do
-              result <- liftIO $ checkBasicAuth authDB allowedGroups req
-              case result of
-                Just group -> do
-                  let groupStr = signCookieValue secret (encodeUtf8 (T.intercalate "," (group : groups)))
-                  cookieHeader <- liftIO $ makeSecureCookieHeader (decodeUtf8 groupStr)
-                  serve matchedRoute routeMap authDB req $ \resp ->
-                    respond $ mapResponseHeaders ((cookieHeader :) . filter (\(h, _) -> h /= "Set-Cookie")) resp
-                Nothing ->
-                  liftIO $
-                    respond $
-                      responseLBS
-                        status401
-                        [("WWW-Authenticate", "Basic realm=\"Access to " <> encodeUtf8 matchedRoute <> "\"")]
-                        "Unauthorized"
+    else case findMatchingRoute normalizedPath routeMap of
+      Nothing -> do
+        logWarning $ "No matching auth route. Serving static: " <> normalizedPath
+        authenticatedListing routeMap authDB rawPath req respond
+      Just (matchedRoute, (_, allowedGroups)) -> do
+        if normalizedPath /= matchedRoute && (normalizedPath <> "/") == matchedRoute
+          then liftIO $ respond $ responseBuilder status301 [("Location", encodeUtf8 ("/" <> matchedRoute))] mempty
+          else do
+            (authorized, groups) <- isAuthorized allowedGroups req
+            if authorized
+              then serve normalizedPath routeMap authDB req respond
+              else do
+                result <- liftIO $ checkBasicAuth authDB allowedGroups req
+                case result of
+                  Just group -> do
+                    let groupStr = signCookieValue secret (encodeUtf8 (T.intercalate "," (group : groups)))
+                    cookieHeader <- liftIO $ makeSecureCookieHeader (decodeUtf8 groupStr)
+                    serve matchedRoute routeMap authDB req $ \resp ->
+                      respond $ mapResponseHeaders ((cookieHeader :) . filter (\(h, _) -> h /= "Set-Cookie")) resp
+                  Nothing ->
+                    liftIO $
+                      respond $
+                        responseLBS
+                          status401
+                          [("WWW-Authenticate", "Basic realm=\"Access to " <> encodeUtf8 matchedRoute <> "\"")]
+                          "Unauthorized"
 
 webSocketHandler :: (WithLog env Message m, MonadIO m) => PendingConnection -> m ()
 webSocketHandler pendingConn = do

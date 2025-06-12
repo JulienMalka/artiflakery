@@ -1,37 +1,42 @@
 module Config
-(
-  parseConfigFile,
-  Route,
-  FlakeRef,
-  RouteMap,
-  Group,
-  UserId,
-  PasswordHash,
-  UserDB,
-  parseAuthFile
- )
+  ( parseConfigFile,
+    Route,
+    FlakeRef,
+    RouteMap,
+    Group,
+    UserId,
+    PasswordHash,
+    UserDB,
+    parseAuthFile,
+  )
 where
 
-import qualified Data.Map.Strict as Map
 import Data.Map.Strict (Map)
+import qualified Data.Map.Strict as Map
 import Data.Maybe (mapMaybe)
 import Data.Text (Text)
 import qualified Data.Text as T
 import qualified Data.Text.IO as TIO
 
 type Route = Text
+
 type FlakeRef = Text
+
 type Group = Text
+
 type UserId = Text
+
 type PasswordHash = Text
+
 type UserDB = Map Group [(UserId, PasswordHash)]
+
 type RouteMap = Map Route (FlakeRef, [Group])
 
 parseConfigFile :: FilePath -> IO RouteMap
 parseConfigFile path = do
   content <- TIO.readFile path
   let parsed = mapMaybe parseLine (T.lines content)
-      routeMap = Map.fromList [ (route, (ref, groups)) | (route, ref, groups) <- parsed ]
+      routeMap = Map.fromList [(route, (ref, groups)) | (route, ref, groups) <- parsed]
   return routeMap
   where
     parseLine :: Text -> Maybe (Route, FlakeRef, [Group])
@@ -39,7 +44,6 @@ parseConfigFile path = do
       case T.words line of
         (route : ref : groups) -> Just (route, ref, groups)
         _ -> Nothing
-
 
 parseAuthFile :: FilePath -> IO UserDB
 parseAuthFile path = do
@@ -54,5 +58,5 @@ parseAuthFile path = do
         [group, userHash] ->
           case T.splitOn ":" userHash of
             [user, hash] -> Just (group, user, hash)
-            _            -> Nothing
+            _ -> Nothing
         _ -> Nothing

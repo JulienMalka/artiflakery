@@ -26,13 +26,12 @@ import qualified Data.Text as T
 import Data.Text.Encoding (encodeUtf8)
 import qualified Data.Text.Encoding as TE
 import qualified Data.Text.IO as TIO
-import Logger
 import Network.HTTP.Types
 import Network.Wai
 import Network.Wai.Application.Static (defaultFileServerSettings, ssAddTrailingSlash, staticApp)
 import System.Directory
 import System.FilePath ((</>))
-import UnliftIO (async, MonadUnliftIO)
+import UnliftIO (MonadUnliftIO, async)
 
 type LoggedApplication env m =
   (WithLog env Message m, MonadIO m, MonadUnliftIO m) =>
