@@ -3,9 +3,7 @@
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE FlexibleContexts #-}
 
-
 module AuthenticatedListing (authenticatedListing) where
-
 
 import Network.Wai
 import Network.HTTP.Types
@@ -35,7 +33,6 @@ nextSubDir prefix full =
 
 directoryViewerHtml :: BS.ByteString
 directoryViewerHtml = $(embedFile "directory-viewer.html")
-
 
 makeFolderItem :: Text -> Text
 makeFolderItem folder = T.unlines
@@ -76,8 +73,10 @@ authenticatedListing routeMap _authDB requestedPath req respond = do
       template = TE.decodeUtf8 directoryViewerHtml
       folderItems = T.unlines $ map makeFolderItem links
       normPath' = (T.dropWhileEnd (== '/') normPath)
-      path = if normPath' == "" then "" else "&mdash; <span class=\"path\">" <> normPath' <> "</span>" 
+      path = if normPath' == "" then "" else "&mdash; <span class=\"path\">" <> normPath' <> "</span>"
+      title = if normPath' == "" then "" else "&mdash; " <> normPath'
       html = T.replace "{{PATH}}" path
+             $ T.replace "{{TITLE}}" title
              $ T.replace "{{FOLDERS}}" folderItems
              $ template
 
