@@ -8,6 +8,7 @@ module Server
     serveFlakeWithCookie,
     serveStaticWithCookie,
     serveFlakePath,
+    serveStatic,
     LoggedApplication,
   )
 where
@@ -40,7 +41,7 @@ type LoggedApplication env m =
   m ResponseReceived
 
 pdfViewerHtml :: BS.ByteString
-pdfViewerHtml = $(embedFile "pdf-viewer.html")
+pdfViewerHtml = $(embedFile "static/pdf-viewer.html")
 
 websocketScriptFor :: Route -> Text
 websocketScriptFor route =
@@ -101,5 +102,16 @@ serveFlakeWithCookie normalizedPath cookieHeader routeMap authDB req respond = d
 
 serveStaticWithCookie :: Header -> LoggedApplication env m
 serveStaticWithCookie cookieHeader req respond = do
-  liftIO $ staticApp (defaultFileServerSettings "data") {ssAddTrailingSlash = True} req $ \r ->
+  liftIO $ serveStatic req $ \r ->
     respond $ mapResponseHeaders ((cookieHeader :) . filter (\(h, _) -> h /= "Set-Cookie")) r
+
+-- | Serve static files from both data/ and static/ directories
+serveStatic :: Network.Wai.Request -> (Network.Wai.Response -> IO ResponseReceived) -> IO ResponseReceived
+serveStatic req respond =
+  let path = rawPathInfo req
+      isStaticPath = "/pdfjs/" `BS.isPrefixOf` path
+                  || "/static/" `BS.isPrefixOf` path
+                  || "/node_modules/" `BS.isPrefixOf` path
+  in if isStaticPath
+       then staticApp (defaultFileServerSettings "static") {ssAddTrailingSlash = True} req respond
+       else staticApp (defaultFileServerSettings "data") {ssAddTrailingSlash = True} req respond

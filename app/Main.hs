@@ -68,7 +68,13 @@ app routeMap authDB req respond = do
       normalizedPath = T.dropWhile (== '/') rawPath
       allGroups = Set.toList $ Set.fromList $ concatMap snd (Map.elems routeMap)
   logDebug $ "Incoming request path: " <> normalizedPath
-  if normalizedPath == "login"
+  -- Serve static files (PDF.js viewer) directly without authentication
+  let isStaticPath = "static/" `T.isPrefixOf` normalizedPath
+                  || "pdfjs/" `T.isPrefixOf` normalizedPath
+                  || "node_modules/" `T.isPrefixOf` normalizedPath
+  if isStaticPath
+    then liftIO $ serveStatic req respond
+    else if normalizedPath == "login"
     then do
       logDebug "Login endpoint requested, starting authentication flow"
       result <- liftIO $ checkBasicAuth authDB allGroups req
