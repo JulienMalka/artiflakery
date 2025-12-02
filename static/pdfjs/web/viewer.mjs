@@ -16578,7 +16578,7 @@ const PDFViewerApplication = {
     let file;
     const queryString = document.location.search.substring(1);
     const params = parseQueryString(queryString);
-    file = params.get("file") ?? AppOptions.get("defaultUrl");
+    file = window.ARTIFLAKERY?.pdfPath || (params.get("file") ?? AppOptions.get("defaultUrl"));
     try {
       file = new URL(decodeURIComponent(file)).href;
     } catch {

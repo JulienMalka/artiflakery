@@ -22,6 +22,7 @@ See https://github.com/adobe-type-tools/cmap-resources
 -->
 <html dir="ltr" mozdisallowselectionprint>
   <head>
+    <base href="/pdfjs/web/" />
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
     <meta name="google" content="notranslate" />
@@ -29,6 +30,10 @@ See https://github.com/adobe-type-tools/cmap-resources
 
 <!-- This snippet is used in production (included from viewer.html) -->
 <link rel="resource" type="application/l10n" href="locale/locale.json" />
+<!-- Artiflakery config (replaced by server) -->
+<script>
+  window.ARTIFLAKERY = { pdfPath: "{{PDF_PATH}}", route: "{{ROUTE}}" };
+</script>
 <script src="../../node_modules/pdfjs-dist/build/pdf.mjs" type="module"></script>
 
     <link rel="stylesheet" href="viewer.css" />
@@ -1133,5 +1138,20 @@ See https://github.com/adobe-type-tools/cmap-resources
     </div>
     <!-- outerContainer -->
     <div id="printContainer"></div>
+    <script>
+      // Artiflakery: auto-reload on build complete
+      (function() {
+        const config = window.ARTIFLAKERY;
+        if (config && config.route && !config.route.includes("{{")) {
+          const protocol = window.location.protocol === 'https:' ? 'wss://' : 'ws://';
+          const socket = new WebSocket(protocol + window.location.host + '/ws');
+          socket.addEventListener('message', function(event) {
+            if (event.data === 'Build Complete!:' + config.route) {
+              window.location.reload();
+            }
+          });
+        }
+      })();
+    </script>
   </body>
 </html>

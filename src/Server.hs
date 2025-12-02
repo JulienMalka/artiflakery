@@ -76,26 +76,27 @@ serveFlakePath route ref _allowedGroups _authDB _req respond = do
       routeDir = dataDir </> T.unpack route
       htmlFile = routeDir </> T.unpack "index.html"
       pdfFile = routeDir </> T.unpack "main.pdf"
-      pdfViewerFile = staticDir </> "pdf-viewer.html"
+      viewerFile = staticDir </> "pdfjs" </> "web" </> "viewer.html"
 
   _ <- async $ buildFlakeWithLogging route ref
 
   pdfExists <- liftIO $ doesFileExist pdfFile
   htmlExists <- liftIO $ doesFileExist htmlFile
 
-  if htmlExists || pdfExists
+  if pdfExists
     then do
-      finalOutput <-
-        if pdfExists
-          then do
-            pdfViewerHtml <- liftIO $ TIO.readFile pdfViewerFile
-            pure $ pdfViewerHtml `T.append` websocketScriptFor route
-          else do
-            content <- liftIO $ TIO.readFile htmlFile
-            pure $ content `T.append` websocketScriptFor route
-
+      -- Serve PDF.js viewer with template variables replaced
+      viewerHtml <- liftIO $ TIO.readFile viewerFile
+      let pdfPath = "/" <> route <> "main.pdf"
+          finalOutput = T.replace "{{PDF_PATH}}" pdfPath $
+                        T.replace "{{ROUTE}}" route viewerHtml
       liftIO $ respond $ responseLBS status200 [("Content-Type", "text/html")] (BL.fromStrict $ encodeUtf8 finalOutput)
-    else liftIO $ notFound respond
+    else if htmlExists
+      then do
+        content <- liftIO $ TIO.readFile htmlFile
+        let finalOutput = content `T.append` websocketScriptFor route
+        liftIO $ respond $ responseLBS status200 [("Content-Type", "text/html")] (BL.fromStrict $ encodeUtf8 finalOutput)
+      else liftIO $ notFound respond
 
 serve :: Text -> RouteMap -> UserDB -> LoggedApplication env m
 serve normalizedPath routeMap authDB req respond = do
