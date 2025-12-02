@@ -32,7 +32,7 @@ nextSubDir prefix full =
     Nothing -> Nothing
 
 directoryViewerHtml :: BS.ByteString
-directoryViewerHtml = $(embedFile "directory-viewer.html")
+directoryViewerHtml = $(embedFile "static/directory-viewer.html")
 
 makeFolderItem :: Text -> Text
 makeFolderItem folder =
