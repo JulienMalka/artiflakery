@@ -1,6 +1,5 @@
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE RankNTypes #-}
-{-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE TypeApplications #-}
 
 module Server
@@ -9,6 +8,7 @@ module Server
     serveStaticWithCookie,
     serveFlakePath,
     serveStatic,
+    getStaticDir,
     LoggedApplication,
   )
 where
@@ -20,17 +20,17 @@ import Config
 import Control.Monad.IO.Class
 import qualified Data.ByteString as BS
 import qualified Data.ByteString.Lazy as BL
-import Data.FileEmbed (embedFile)
+import Data.Maybe (fromMaybe)
 import qualified Data.Map.Strict as Map
 import Data.Text (Text)
 import qualified Data.Text as T
 import Data.Text.Encoding (encodeUtf8)
-import qualified Data.Text.Encoding as TE
 import qualified Data.Text.IO as TIO
 import Network.HTTP.Types
 import Network.Wai
 import Network.Wai.Application.Static (defaultFileServerSettings, ssAddTrailingSlash, staticApp)
 import System.Directory
+import System.Environment (lookupEnv)
 import System.FilePath ((</>))
 import UnliftIO (MonadUnliftIO, async)
 
@@ -40,8 +40,14 @@ type LoggedApplication env m =
   (Network.Wai.Response -> IO ResponseReceived) ->
   m ResponseReceived
 
-pdfViewerHtml :: BS.ByteString
-pdfViewerHtml = $(embedFile "static/pdf-viewer.html")
+-- | Get the static directory path. Checks for local ./static first (dev mode),
+-- then falls back to ARTIFLAKERY_STATIC_DIR env var (prod/Nix mode).
+getStaticDir :: IO FilePath
+getStaticDir = do
+  localExists <- doesDirectoryExist "static"
+  if localExists
+    then pure "static"
+    else fromMaybe "static" <$> lookupEnv "ARTIFLAKERY_STATIC_DIR"
 
 websocketScriptFor :: Route -> Text
 websocketScriptFor route =
@@ -65,10 +71,12 @@ serveFlakePath :: Route -> FlakeRef -> [Group] -> UserDB -> LoggedApplication en
 serveFlakePath route ref _allowedGroups _authDB _req respond = do
   logInfo $ "Serving route (authorized): " <> route
 
+  staticDir <- liftIO getStaticDir
   let dataDir = "data"
       routeDir = dataDir </> T.unpack route
       htmlFile = routeDir </> T.unpack "index.html"
       pdfFile = routeDir </> T.unpack "main.pdf"
+      pdfViewerFile = staticDir </> "pdf-viewer.html"
 
   _ <- async $ buildFlakeWithLogging route ref
 
@@ -79,7 +87,9 @@ serveFlakePath route ref _allowedGroups _authDB _req respond = do
     then do
       finalOutput <-
         if pdfExists
-          then pure $ TE.decodeUtf8 pdfViewerHtml `T.append` websocketScriptFor route
+          then do
+            pdfViewerHtml <- liftIO $ TIO.readFile pdfViewerFile
+            pure $ pdfViewerHtml `T.append` websocketScriptFor route
           else do
             content <- liftIO $ TIO.readFile htmlFile
             pure $ content `T.append` websocketScriptFor route
@@ -92,7 +102,7 @@ serve normalizedPath routeMap authDB req respond = do
   logInfo $ "Serving " <> normalizedPath
   if Map.member normalizedPath routeMap
     then uncurry (serveFlakePath normalizedPath) (routeMap Map.! normalizedPath) authDB req respond
-    else liftIO $ staticApp (defaultFileServerSettings "data") {ssAddTrailingSlash = True} req respond
+    else liftIO $ staticApp (defaultFileServerSettings "data") {ssAddTrailingSlash = True} req (respond . noCacheHeaders)
 
 serveFlakeWithCookie :: Text -> Header -> RouteMap -> UserDB -> LoggedApplication env m
 serveFlakeWithCookie normalizedPath cookieHeader routeMap authDB req respond = do
@@ -105,13 +115,18 @@ serveStaticWithCookie cookieHeader req respond = do
   liftIO $ serveStatic req $ \r ->
     respond $ mapResponseHeaders ((cookieHeader :) . filter (\(h, _) -> h /= "Set-Cookie")) r
 
+-- | Add no-cache headers to a response
+noCacheHeaders :: Network.Wai.Response -> Network.Wai.Response
+noCacheHeaders = mapResponseHeaders (++ [("Cache-Control", "no-store, no-cache, must-revalidate")])
+
 -- | Serve static files from both data/ and static/ directories
 serveStatic :: Network.Wai.Request -> (Network.Wai.Response -> IO ResponseReceived) -> IO ResponseReceived
-serveStatic req respond =
+serveStatic req respond = do
+  staticDir <- getStaticDir
   let path = rawPathInfo req
       isStaticPath = "/pdfjs/" `BS.isPrefixOf` path
                   || "/static/" `BS.isPrefixOf` path
                   || "/node_modules/" `BS.isPrefixOf` path
-  in if isStaticPath
-       then staticApp (defaultFileServerSettings "static") {ssAddTrailingSlash = True} req respond
-       else staticApp (defaultFileServerSettings "data") {ssAddTrailingSlash = True} req respond
+  if isStaticPath
+    then staticApp (defaultFileServerSettings staticDir) {ssAddTrailingSlash = True} req respond
+    else staticApp (defaultFileServerSettings "data") {ssAddTrailingSlash = True} req (respond . noCacheHeaders)

@@ -1,7 +1,6 @@
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RankNTypes #-}
-{-# LANGUAGE TemplateHaskell #-}
 
 module AuthenticatedListing (authenticatedListing) where
 
@@ -9,18 +8,17 @@ import Auth
 import Config
 import Control.Monad (filterM)
 import Control.Monad.IO.Class
-import qualified Data.ByteString as BS
 import qualified Data.ByteString.Lazy.Char8 as LBS
-import Data.FileEmbed (embedFile)
 import qualified Data.Map.Strict as Map
 import Data.Maybe (mapMaybe)
 import qualified Data.Set as Set
 import Data.Text (Text)
 import qualified Data.Text as T
-import qualified Data.Text.Encoding as TE
+import qualified Data.Text.IO as TIO
 import Network.HTTP.Types
 import Network.Wai
-import Server
+import Server (LoggedApplication, getStaticDir)
+import System.FilePath ((</>))
 
 nextSubDir :: T.Text -> T.Text -> Maybe T.Text
 nextSubDir prefix full =
@@ -30,9 +28,6 @@ nextSubDir prefix full =
         (next : _) | not (T.null next) -> Just (next <> "/")
         _ -> Nothing
     Nothing -> Nothing
-
-directoryViewerHtml :: BS.ByteString
-directoryViewerHtml = $(embedFile "static/directory-viewer.html")
 
 makeFolderItem :: Text -> Text
 makeFolderItem folder =
@@ -59,6 +54,7 @@ normalizePath path = ensureTrailingSlash (T.dropWhile (== '/') path)
 
 authenticatedListing :: RouteMap -> UserDB -> T.Text -> LoggedApplication env m
 authenticatedListing routeMap _authDB requestedPath req respond = do
+  staticDir <- liftIO getStaticDir
   let normPath = normalizePath requestedPath
       childRoutes =
         Map.toList $
@@ -68,9 +64,9 @@ authenticatedListing routeMap _authDB requestedPath req respond = do
 
   authorized <- filterM (\(_, (_, groups)) -> fst <$> isAuthorized groups req) childRoutes
 
+  template <- liftIO $ TIO.readFile (staticDir </> "directory-viewer.html")
   let nextDirs = Set.fromList $ mapMaybe (nextSubDir normPath . fst) authorized
       links = Set.toList nextDirs
-      template = TE.decodeUtf8 directoryViewerHtml
       folderItems = T.unlines $ map makeFolderItem links
       normPath' = (T.dropWhileEnd (== '/') normPath)
       path = if normPath' == "" then "" else "&mdash; <span class=\"path\">" <> normPath' <> "</span>"

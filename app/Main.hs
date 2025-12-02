@@ -128,13 +128,10 @@ webSocketHandler pendingConn = do
   logInfo "New WebSocket connection accepted."
   conn <- liftIO $ acceptRequest pendingConn
   client <- liftIO $ addClient conn
-  _ <-
-    liftIO $
-      finally
-        (forever $ void (receiveData conn :: IO Text))
-        (pure ())
-  logInfo $ "Closing connection: " <> T.pack (show (connId client))
-  liftIO $ removeClient (connId client)
+  liftIO $
+    finally
+      (forever $ void (receiveData conn :: IO Text))
+      (removeClient (connId client))
 
 createDataSkeleton :: (WithLog env Message m, MonadIO m) => RouteMap -> m ()
 createDataSkeleton routeMap = do
