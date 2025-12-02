@@ -20,6 +20,9 @@
       in
       {
         defaultPackage = artiflakery;
+        packages = {
+          inherit artiflakery;
+        };
         checks = {
           inherit artiflakery;
         };
@@ -28,11 +31,13 @@
             stack
             haskell.compiler.ghc96
             haskell-language-server
+            nodejs
           ];
         };
 
       }
-    )) // {
+    ))
+    // {
       nixosModules.default = import ./module.nix;
     };
 }
