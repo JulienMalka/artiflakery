@@ -68,7 +68,13 @@ app routeMap authDB req respond = do
       normalizedPath = T.dropWhile (== '/') rawPath
       allGroups = Set.toList $ Set.fromList $ concatMap snd (Map.elems routeMap)
   logDebug $ "Incoming request path: " <> normalizedPath
-  if normalizedPath == "login"
+  -- Serve static files (PDF.js viewer) directly without authentication
+  let isStaticPath = "static/" `T.isPrefixOf` normalizedPath
+                  || "pdfjs/" `T.isPrefixOf` normalizedPath
+                  || "node_modules/" `T.isPrefixOf` normalizedPath
+  if isStaticPath
+    then liftIO $ serveStatic req respond
+    else if normalizedPath == "login"
     then do
       logDebug "Login endpoint requested, starting authentication flow"
       result <- liftIO $ checkBasicAuth authDB allGroups req
@@ -122,13 +128,10 @@ webSocketHandler pendingConn = do
   logInfo "New WebSocket connection accepted."
   conn <- liftIO $ acceptRequest pendingConn
   client <- liftIO $ addClient conn
-  _ <-
-    liftIO $
-      finally
-        (forever $ void (receiveData conn :: IO Text))
-        (pure ())
-  logInfo $ "Closing connection: " <> T.pack (show (connId client))
-  liftIO $ removeClient (connId client)
+  liftIO $
+    finally
+      (forever $ void (receiveData conn :: IO Text))
+      (removeClient (connId client))
 
 createDataSkeleton :: (WithLog env Message m, MonadIO m) => RouteMap -> m ()
 createDataSkeleton routeMap = do

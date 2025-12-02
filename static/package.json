@@ -1,0 +1,9 @@
+{
+  "name": "artiflakery-static",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Static assets for Artiflakery",
+  "dependencies": {
+    "pdfjs-dist": "^5.4.449"
+  }
+}
